@@ -1,0 +1,18 @@
+from __future__ import unicode_literals
+
+from django.db import models
+from django.contrib.auth.models import User
+
+# Create your models here.
+class Pattern(models.Model):
+    lava_server = models.URLField()
+    lava_job_id = models.CharField(max_length=16)
+    lava_job_status = models.CharField(max_length=16, null=True, blank=True)
+    build_job_name = models.CharField(max_length=1024)
+    build_job_url = models.URLField()
+    requester = models.ForeignKey(User)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return "%s - %s (%s)" % (self.lava_job_id, self.lava_server, self.requester)
