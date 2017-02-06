@@ -21,7 +21,7 @@ class ZMQDaemon(multiprocessing.Process):
     def setup(self):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.SUB)
-        self.socket.setsockopt(zmq.SUBSCRIBE, str(self.listener.topic_name))
+        self.socket.setsockopt_string(zmq.SUBSCRIBE, self.listener.topic_name)
         self.socket.connect(self.listener.publisher_address)
         self.run_forever = True
 
@@ -37,7 +37,7 @@ class ZMQDaemon(multiprocessing.Process):
                 logger.debug(topic)
                 logger.debug(data)
                 match_pattern.delay(uuid, dt, username, json.loads(data))
-            except Exception, e:
+            except Exception as e:
                 logger.error(e)
                 pass
 

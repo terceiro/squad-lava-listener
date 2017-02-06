@@ -1,12 +1,15 @@
 import json
 import logging
 import requests
-import urlparse
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
 
 from datetime import datetime
 from django.conf import settings
 from squadlavalistener import celery_app
-from models import Pattern
+from .models import Pattern
 from . import  testminer
 from celery.utils.log import get_task_logger
 from collections import defaultdict
@@ -94,7 +97,7 @@ def set_testjob_results(self, pattern, data):
 
 
 def prepare_squad_url(base_url, team, project, build, environment):
-    split = urlparse.urlsplit(base_url)
+    split = urlsplit(base_url)
     return "%s://%s/api/submit/%s/%s/%s/%s" % (split.scheme, split.netloc, team, project, build, environment)
 
 def store_testjob_data(testjob, test_results):
@@ -227,7 +230,7 @@ def get_testjob_data(testjob):
 
     logger.info("Fetch benchmark results for %s" % testjob)
 
-    netloc = urlparse.urlsplit(testjob.testrunnerurl).netloc
+    netloc = urlsplit(testjob.testrunnerurl).netloc
     if netloc not in settings.CREDENTIALS.keys():
         logger.warning("Credentials not found for %s" % netloc)
         return

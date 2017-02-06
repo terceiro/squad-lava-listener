@@ -9,11 +9,20 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import xmlrpclib
 import yaml
 
+try:
+    # try python3 first
+    from xmlrpc import client as xmlrpclib
+except ImportError:
+    import xmlrpclib
+
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
+
 from copy import deepcopy
-from urlparse import urlsplit
 from subprocess import Popen, PIPE, STDOUT
 from celery.utils.log import get_task_logger
 

@@ -1,0 +1,11 @@
+amqp==1.4.9
+celery==3.1.25
+Django==1.10.5
+django-celery==3.2.1
+djangorestframework==3.5.3
+PyYAML==3.12
+pyzmq==16.0.2
+requests==2.13.0
+six==1.10.0
+zmq==0.0.0
+
