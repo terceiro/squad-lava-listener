@@ -44,7 +44,8 @@ class ZMQDaemon(multiprocessing.Process):
 
 class Command(BaseCommand):
     def handle(self, **kwargs):
-        listeners = LavaListener.objects.all()
+        # only start listeners that aren't already running
+        listeners = LavaListener.objects.filter(pid__isnull=True)
         default_handler = signal.getsignal(signal.SIGINT)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         zmqd_ref_array = []
