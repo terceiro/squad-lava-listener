@@ -78,7 +78,6 @@ def match_pattern(self, uuid, dt, username, data):
 
 
 @celery_app.task(bind=True)
-#def set_testjob_results(self, testjob_id):
 def set_testjob_results(self, pattern, data):
     testjob = TestJob(pattern, data)
     try:
@@ -128,26 +127,18 @@ def store_testjob_data(testjob, test_results):
             benchmark_group = result['benchmark_group']
         else:
             benchmark_group = None
-        benchmark =  name=result['benchmark_name']
+        benchmark = result['benchmark_name']
 
         subscore_results = {}
         for item in result['subscore']:
             if item['name'] in subscore_results:
-                subscore_results[item['name']].append(item['measurement'])
+                subscore_results["%s/%s" % (benchmark, item['name'])].append(item['measurement'])
             else:
-                subscore_results[item['name']] = [item['measurement']]
+                subscore_results["%s/%s" % (benchmark, item['name'])] = [item['measurement']]
 
         logger.debug("subscore dict")
         logger.debug(subscore_results)
         for name, values in subscore_results.items():
-            #models.ResultData.objects.create(
-            #    name=name,
-            #    created_at=testjob.created_at,
-            #    values=values,
-            #    result=testjob.result,
-            #    test_job_id=testjob.id,
-            #    benchmark=benchmark
-            #)
             if benchmark_group:
                 for v in values:
                     summary[benchmark_group].append(v)
@@ -155,17 +146,6 @@ def store_testjob_data(testjob, test_results):
 
     logger.debug("summary dict")
     logger.debug(summary)
-#    for (gid, values) in summary.items():
-#        group = models.BenchmarkGroup.objects.get(pk=gid)
-#        models.BenchmarkGroupSummary.objects.create(
-#            group=group,
-#            environment=testjob.environment,
-#            created_at=testjob.created_at,
-#            result=testjob.result,
-#            test_job_id=testjob.id,
-#            values=values,
-#        )
-
 
     testjob.results_loaded = True
 
@@ -205,7 +185,7 @@ def submit_to_squad(squad_url, team, tests=None, metrics=None, metadata=None, at
         payload.append(("metadata", json.dumps(metadata)))
 
     if attachments is not None:
-        for attachment_name, attachment_data in attachments.iteritems():
+        for attachment_name, attachment_data in attachments.items():
             if attachment_name is not None and attachment_data is not None:
                 payload.append(("attachment", (attachment_name, attachment_data)))
 

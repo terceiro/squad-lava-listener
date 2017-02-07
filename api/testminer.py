@@ -89,7 +89,7 @@ def add_subscore_measurements(test_result_list, test_name, measurements):
 def extract_microbenchmarks(test_result_benchmarks, test_result_list):
     # Key Format: benchmarks/micro/<BENCHMARK_NAME>.<SUBSCORE>
     # Extract and unique them to form a benchmark name list
-    for full_benchmark_name, measurements in test_result_benchmarks.iteritems():
+    for full_benchmark_name, measurements in test_result_benchmarks.items():
         test_result = {}
         # benchmark iteration
         benchmark_group = '/'.join(full_benchmark_name.split('/')[0:-1]) + '/'
@@ -107,15 +107,15 @@ def extract_microbenchmarks(test_result_benchmarks, test_result_list):
 
 
 def extract_compilation_statistics(test_result_statistics, test_result_list):
-    for benchmark_name, benchmark_subscores in test_result_statistics.iteritems():
-        for subscore, values in benchmark_subscores.iteritems():
+    for benchmark_name, benchmark_subscores in test_result_statistics.items():
+        for subscore, values in benchmark_subscores.items():
             benchmark_group = "compilation statistics" + "/" + benchmark_name + "/"
             test_result = {}
             test_result['benchmark_name'] = subscore
             test_result['benchmark_group'] = benchmark_group
             test_result['subscore'] = []
             if isinstance(values, dict):
-                for sub, val in values.iteritems():
+                for sub, val in values.items():
                     add_subscore_measurements(
                         test_result['subscore'],
                         sub,
@@ -327,7 +327,7 @@ class LavaTestSystem(GenericLavaTestSystem):
                 #print "\t\t\tTest file: %s" % repo['testdef']
                 #if "parameters" in repo.keys():
                 #    #print "\t\t\tParameters:"
-                #    for param_key, param_value in repo["parameters"].iteritems():
+                #    for param_key, param_value in repo["parameters"].items():
                 #        #print "\t\t\t\t%s: %s" % (param_key, param_value)
         return return_list
 
@@ -446,8 +446,8 @@ class LavaTestSystem(GenericLavaTestSystem):
 
     def assign_indexed_result(self, defined_tests, index, result):
         test_index = 0
-        for test_key, test_dict in defined_tests.iteritems():
-            for testdef_key, testdef_dict in test_dict.iteritems():
+        for test_key, test_dict in defined_tests.items():
+            for testdef_key, testdef_dict in test_dict.items():
                 if test_index == index:
                     defined_tests[test_key][testdef_key]['boot'] = deepcopy(result)
                 else:
@@ -727,7 +727,7 @@ class ArtWATestResults(LavaTestSystem):
                         }]
                     test_result_dict[row[1]] = test_result
             os.unlink(db_file.name)
-        return [value for key, value in test_result_dict.iteritems()]
+        return [value for key, value in test_result_dict.items()]
 
     def get_result_data(self, test_job_id):
         status = self.call_xmlrpc('scheduler.job_status', test_job_id)
@@ -811,7 +811,7 @@ class AndroidMultinodeBenchmarkResults(LavaTestSystem):
                              "measurement": float(test['measurement'])
                             }]
                     test_result_dict[benchmark] = test_result
-        return [value for key, value in test_result_dict.iteritems()]
+        return [value for key, value in test_result_dict.items()]
 
 
 class AndroidApplicationsBenchmarkResults(AndroidMultinodeBenchmarkResults):
