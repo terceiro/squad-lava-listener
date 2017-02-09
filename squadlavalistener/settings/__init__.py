@@ -98,6 +98,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LAVA_LISTENERS = [
+    # {
+    #     'name': 'My LAVA server',
+    #     'zmq_endpoint': 'tcp://host.example.com',
+    #     'zmq_topic': 'com.example.host',
+    # },
+    # others ...
+]
+
 CREDENTIALS = {
     'host.example.com': ('username', 'password'),
 }
