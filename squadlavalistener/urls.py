@@ -11,5 +11,5 @@ def goto_admin(request):
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include('api.urls')),
-    url(r'', goto_admin),
+    url(r'^$', goto_admin),
 ]
