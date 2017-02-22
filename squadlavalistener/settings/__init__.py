@@ -137,7 +137,6 @@ CELERY_RESULT_BACKEND = 'rpc://'
 CELERY_RESULT_PERSISTENT = False
 CELERY_ACCEPT_CONTENT = ['json', 'pickle']
 CELERYBEAT_SCHEDULE_FILENAME = "/tmp/squadlavalistenr-celery-beat"
-CELERY_DEFAULT_QUEUE = "lava"
 
 CELERYD_LOG_FORMAT = '[%(asctime)s] %(levelname)s: %(message)s'
 CELERYD_TASK_LOG_FORMAT = '[%(asctime)s] %(levelname)s %(task_name)s: %(message)s'
