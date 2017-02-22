@@ -131,7 +131,7 @@ REST_FRAMEWORK = {
 }
 
 # Celery settings
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+BROKER_URL = 'amqp://lava:lava@localhost:5672//lava'
 
 CELERY_RESULT_BACKEND = 'rpc://'
 CELERY_RESULT_PERSISTENT = False
