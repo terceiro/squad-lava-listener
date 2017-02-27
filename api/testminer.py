@@ -252,7 +252,10 @@ class GenericLavaTestSystem(TestSystem):
 
     def get_result_class_name(self, job_id):
         content = self.call_xmlrpc('scheduler.job_details', job_id)
-        definition = json.loads(content['definition'])
+        if content['is_pipeline']:
+            definition = yaml.load(content['definition'])
+        else:
+            definition = json.loads(content['definition'])
         return self.get_result_class_name_from_definition(definition)
 
     def get_result_class_name_from_definition(self, definition):
@@ -297,6 +300,54 @@ class GenericLavaTestSystem(TestSystem):
 
     def get_environment_name(self, metadata):
         return metadata.get('device')
+
+
+class LavaV2TestSystem(GenericLavaTestSystem):
+    def test_results_available(self, job_id):
+        status = self.call_xmlrpc('scheduler.job_status', job_id)
+        return 'bundle_sha1' in status and len(status['bundle_sha1']) > 0
+
+    def get_test_job_details(self, job_id):
+        """
+        returns test job metadata, for example device type
+        the tests were run on
+        """
+        details = dict(testertype="lava")
+        status = self.call_xmlrpc('scheduler.job_status', job_id)
+        if 'bundle_sha1' in status:
+            details.update({"bundle": status['bundle_sha1']})
+        content = self.call_xmlrpc('scheduler.job_details', job_id)
+        definition = yaml.load(content['definition'])
+        if content['multinode_definition']:
+            definition = yaml.load(content['multinode_definition'])
+        details.update({"definition": str(yaml.dump(definition))}) # keep json?
+        details['metadata'] = extract_metadata(definition)
+        details['metadata']['device'] = extract_device(definition)
+        details['name'] = extract_name(definition)
+
+        #for action in definition['actions']:
+        #    if action['command'].startswith("submit_results"):
+        #        if 'stream' in action['parameters'].keys():
+        #            details.update({"bundlestream": action['parameters']['stream']})
+        return details
+
+    def get_result_class_name_from_definition(self, definition):
+        return "LavaV2PassFailTestSystem"
+
+
+
+class LavaV2PassFailTestSystem(LavaV2TestSystem):
+
+    def get_test_job_results(self, job_id):
+        ret_results = {}
+        results = self.call_xmlrpc('results.get_testjob_results_yaml', job_id)
+        for result in yaml.load(results):
+            if result['suite'] != 'lava':
+                suite = result['suite'].split("_", 1)[1]
+                res_name = "%s/%s" % (suite, result['name'])
+                res_value = result['result']
+                ret_results.update({res_name: res_value})
+        return ret_results
 
 
 class LavaTestSystem(GenericLavaTestSystem):
