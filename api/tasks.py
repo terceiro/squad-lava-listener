@@ -60,7 +60,7 @@ def check_job_status(self, pattern, data):
     # set job status and collect data
     if data['pipeline']:
         # check v2 job
-        pass
+        set_v2_testjob_results.delay(pattern, data)
     else:
         set_testjob_results.delay(pattern, data)
 
@@ -76,6 +76,22 @@ def match_pattern(self, uuid, dt, username, data):
         logger.info("pattern match %s" % pattern)
         check_job_status.delay(pattern, data)
 
+@celery_app.task(bind=True)
+def set_v2_testjob_results(self, pattern, data):
+    testjob = TestJob(pattern, data)
+    try:
+        test_results = get_testjob_data(testjob)
+        pattern.lava_job_status = testjob.status
+        pattern.save()
+        store_testjob_data(testjob, test_results)
+    except testminer.LavaServerException as ex:
+        if ex.status_code / 100 == 5:
+            # HTTP 50x (internal server errors): server is too busy, in
+            # maintaince, or broken; will try again later
+            logger.info(ex.message)
+            return
+        else:
+            raise
 
 @celery_app.task(bind=True)
 def set_testjob_results(self, pattern, data):
