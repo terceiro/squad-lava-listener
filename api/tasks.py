@@ -9,7 +9,7 @@ except ImportError:
 from datetime import datetime
 from django.conf import settings
 from squadlavalistener import celery_app
-from .models import Pattern
+from .models import Pattern, SquadToken
 from . import  testminer
 from celery.utils.log import get_task_logger
 from collections import defaultdict
@@ -47,7 +47,10 @@ class TestJob(object):
         self.resubmitted = False
         self.data = None
         self.data_name = None
-        self.testrunnerclass = "GenericLavaTestSystem"
+        if data['pipeline']:
+            self.testrunnerclass = "LavaV2TestSystem"
+        else:
+            self.testrunnerclass = "GenericLavaTestSystem"
         self.testrunnerurl = pattern.lava_server
         self.results_loaded = False
         self.metadata = None
@@ -83,7 +86,19 @@ def set_v2_testjob_results(self, pattern, data):
         test_results = get_testjob_data(testjob)
         pattern.lava_job_status = testjob.status
         pattern.save()
-        store_testjob_data(testjob, test_results)
+
+        team, project, build = testjob.pattern.build_job_name.split("/")
+        squad_store_url = prepare_squad_url(settings.SQUAD_URL, team, project, build, testjob.environment)
+        result = submit_to_squad(squad_store_url,
+            team,
+            None,
+            test_results,
+            testjob.metadata,
+            {testjob.data_name: testjob.data})
+        if result:
+            testjob.pattern.is_active = False
+            testjob.pattern.save()
+
     except testminer.LavaServerException as ex:
         if ex.status_code / 100 == 5:
             # HTTP 50x (internal server errors): server is too busy, in
@@ -177,17 +192,21 @@ def store_testjob_data(testjob, test_results):
 
 
 def submit_to_squad(squad_url, team, tests=None, metrics=None, metadata=None, attachments=None):
-    if team not in settings.SQUAD_TOKENS.keys():
-        logger.warning("SQUAD token not found for: %s" % team)
+    # squad_url should be in form https://squad.example.com/api/submit/my-team/my-project/my-build/my-ci-env
+    split_url = urlsplit(squad_url)
+    project = split_url.path.replace("/api/submit/%s/" % team, "", 1).split("/", 1)[0]
+    tokens = SquadToken.objects.filter(project=project)
+    if not tokens:
+        logger.warning("SQUAD token not found for: %s" % project)
         return False
-    token = settings.SQUAD_TOKENS[team]
+    token = tokens.first()
 
     if tests is None and metrics is None:
         logger.warning("No data to submit")
         return False
 
     headers = {
-        "Auth-Token": token
+        "Auth-Token": token.token
     }
 
     payload = []
