@@ -3,7 +3,15 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
+
+class SquadToken(models.Model):
+    project = models.CharField(max_length=1024)
+    token = models.CharField(max_length=64)
+
+    def __str__(self):
+        return self.project
+
+
 class Pattern(models.Model):
     lava_server = models.URLField()
     lava_job_id = models.CharField(max_length=16)
@@ -16,3 +24,5 @@ class Pattern(models.Model):
 
     def __str__(self):
         return "%s - %s (%s)" % (self.lava_job_id, self.lava_server, self.requester)
+
+
