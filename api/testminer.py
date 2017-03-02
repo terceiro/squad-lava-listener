@@ -207,12 +207,13 @@ class GenericLavaTestSystem(TestSystem):
     BUNDLESTREAMS = 'dashboard/streams'
     JOB = 'scheduler/job'
     def __init__(self, base_url, username=None, password=None, repo_prefix=None):
-        self.url = base_url
+        base_url_split = urlsplit(base_url)
+        self.url = "%s://%s/" % (base_url_split.scheme, base_url_split.netloc)
         self.username = username # API username
         self.password = password # API token
-        self.xmlrpc_url = base_url + LavaTestSystem.XMLRPC
-        self.stream_url = base_url + LavaTestSystem.BUNDLESTREAMS
-        self._url = base_url + LavaTestSystem.JOB
+        self.xmlrpc_url = self.url + LavaTestSystem.XMLRPC
+        self.stream_url = self.url + LavaTestSystem.BUNDLESTREAMS
+        self._url = self.url + LavaTestSystem.JOB
         self.result_data = None
 
     def test_results_available(self, job_id):
