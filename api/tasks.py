@@ -89,12 +89,13 @@ def set_v2_testjob_results(self, pattern, data):
 
         team, project, build = testjob.pattern.build_job_name.split("/")
         squad_store_url = prepare_squad_url(settings.SQUAD_URL, team, project, build, testjob.environment)
-        result = submit_to_squad(squad_store_url,
-            team,
-            None,
-            test_results,
-            testjob.metadata,
-            {testjob.data_name: testjob.data})
+        result = submit_to_squad(
+            squad_url=squad_store_url,
+            team=team,
+            metrics=None,
+            tests=test_results,
+            metadata=testjob.metadata,
+            attachments={testjob.data_name: testjob.data})
         if result:
             testjob.pattern.is_active = False
             testjob.pattern.save()
@@ -180,12 +181,13 @@ def store_testjob_data(testjob, test_results):
 
     testjob.results_loaded = True
 
-    result = submit_to_squad(squad_store_url,
-        team,
-        None,
-        subscore_results,
-        testjob.metadata,
-        {testjob.data_name: testjob.data})
+    result = submit_to_squad(
+        squad_url=squad_store_url,
+        team=team,
+        tests=None,
+        metrics=subscore_results,
+        metadata=testjob.metadata,
+        attachments={testjob.data_name: testjob.data})
     if result:
         testjob.pattern.is_active = False
         testjob.pattern.save()
