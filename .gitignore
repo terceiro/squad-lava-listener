@@ -1,1 +1,3 @@
 squadlavalistener/settings/local.py
+db.sqlite3
+tmp
