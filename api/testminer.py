@@ -303,6 +303,10 @@ class GenericLavaTestSystem(TestSystem):
         return metadata.get('device')
 
 
+    def submit(self, definition):
+        return self.call_xmlrpc('scheduler.submit_job', definition)
+
+
 class LavaV2TestSystem(GenericLavaTestSystem):
     def test_results_available(self, job_id):
         status = self.call_xmlrpc('scheduler.job_status', job_id)

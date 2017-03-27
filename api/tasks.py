@@ -9,7 +9,7 @@ except ImportError:
 from datetime import datetime
 from django.conf import settings
 from squadlavalistener import celery_app
-from .models import Pattern, SquadToken
+from .models import Pattern, SquadToken, Submission
 from . import  testminer
 from celery.utils.log import get_task_logger
 from collections import defaultdict
@@ -335,3 +335,28 @@ def get_testjob_data(testjob):
 
     return test_results
 
+
+@celery_app.task(bind=True)
+def submit_to_lava(self, submission_id):
+    submission = Submission.objects.get(pk=submission_id)
+
+    netloc = urlsplit(submission.lava_server).netloc
+    if netloc not in settings.CREDENTIALS.keys():
+        logger.warning("Credentials not found for %s" % netloc)
+        return
+    username, password = settings.CREDENTIALS[netloc]
+    tester = getattr(testminer, 'GenericLavaTestSystem')(
+        submission.lava_server, username, password
+    )
+
+    job_id = tester.submit(submission.definition)
+    Pattern.objects.create(
+        lava_server=submission.lava_server,
+        lava_job_id=job_id,
+        build_job_name=submission.build_job_name,
+        build_job_url=submission.build_job_url,
+        requester=submission.requester,
+    )
+
+    submission.submitted = True
+    submission.save()

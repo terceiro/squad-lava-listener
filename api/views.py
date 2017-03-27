@@ -5,8 +5,9 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
 
-from api.models import Pattern
-from api.serializers import PatternSerializer
+from api.models import Pattern, Submission
+from api.serializers import PatternSerializer, SubmissionSerializer
+from api.tasks import submit_to_lava
 
 class PatternViewSet(viewsets.ModelViewSet):
     permission_classes = [DjangoModelPermissions]
@@ -26,3 +27,16 @@ class PatternViewSet(viewsets.ModelViewSet):
         else:
             return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return response.Response("{}", status=status.HTTP_401_UNAUTHORIZED)
+
+class SubmissionViewSet(viewsets.ModelViewSet):
+    permission_classes = [DjangoModelPermissions]
+    serializer_class = SubmissionSerializer
+    queryset = Submission.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        request.data.update({"requester": request.user.pk})
+        return super(SubmissionViewSet, self).create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        submission = serializer.save()
+        submit_to_lava.delay(submission.id)
