@@ -26,3 +26,18 @@ class Pattern(models.Model):
         return "%s - %s (%s)" % (self.lava_job_id, self.lava_server, self.requester)
 
 
+class Submission(models.Model):
+    definition = models.TextField()
+
+    # fields that should be copied to Pattern
+    lava_server = models.URLField()
+    build_job_name = models.CharField(max_length=1024)
+    build_job_url = models.URLField()
+
+    submitted = models.BooleanField(default=False)
+
+    requester = models.ForeignKey(User)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.build_job_name
