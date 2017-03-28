@@ -13,7 +13,7 @@ class LavaSubmissionTest(TestCase):
         user = User.objects.create_superuser('test', 'email@test.com', 'test')
         data = {
             'definition': 'foo: 1\n',
-            'lava_server': 'https://validation.linaro.org/RPC2',
+            'lava_server': 'https://host.example.com/RPC2',
             'build_job_name': 'foo/bar/v1.0.1-55',
             'build_job_url': 'http://example.com/foo/bar/v1.0.1-55',
             'requester_id': user.id,
